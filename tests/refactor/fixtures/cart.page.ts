@@ -7,14 +7,13 @@ export class CartPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.applyDiscountButton = this.page.getByRole('button', { name: 'Apply Discount Code' });
+    this.applyDiscountButton = this.page.getByRole('button', { name: selectors.cart.applyDiscountCodeLabel });
   }
 
   async removeProduct(name: string){
-    console.log(name);
-    let removeButton = this.page.getByLabel(`Remove ${name}`);
-    await removeButton.click();
+    let removeButton = this.page.getByLabel(`${selectors.cart.remove} ${name}`);
 
+    await removeButton.click();
     await expect(removeButton,`Button to remove product is no longer visible`).toBeHidden();
   }
 }
