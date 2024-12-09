@@ -1,16 +1,21 @@
-import {expect, type Locator, type Page} from '@playwright/test';
+import {type Locator, type Page} from '@playwright/test';
+import selectors from '../config/selectors/selectors.json';
 
 
 export class HomePage {
   readonly page: Page;
-  readonly buyProductButton: Locator;
+  buyProductButton: Locator;
 
   constructor(page: Page) {
     this.page = page;
-    this.buyProductButton = this.page.getByRole('button').filter({hasText: 'Add to Cart'}).first();
   }
 
   async addHomepageProductToCart(){
-    await this.buyProductButton.click();
+    let buyProductButton = this.page.getByRole('button').filter({hasText: selectors.general.addToCartLabel}).first();
+    if(await buyProductButton.isVisible()) {
+      await buyProductButton.click();
+    } else {
+      throw new Error(`No 'Add to Cart' button found on homepage`);
+    }
   }
 }
