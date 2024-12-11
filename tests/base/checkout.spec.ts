@@ -80,3 +80,33 @@ test.describe('Checkout actions (logged in)', () => {
   // TODO: Write test for logged-in user who hasn't added an address yet.
 
 });
+
+test.describe('Checkout actions (guest)', () => {
+  /**
+   * @feature BeforeEach runs before each test in this group.
+   * @scenario Add product to cart
+   */
+
+  test.beforeEach('Log in, then add product to cart', async ({ page }) => {    
+    //TODO: Use a storagestate or API call to add product to the cart so shorten test time
+    const productPage = new ProductPage(page);
+    await page.goto(slugs.productpage.simpleProductSlug);
+    await productPage.addSimpleProductToCart();
+    await page.goto(slugs.checkoutSlug);
+  });
+
+  // TODO: write Gherkin feature
+  test('Product price checks', async ({page}) => {
+    const productPage = new ProductPage(page);
+    let productPricePDP = await productPage.getProductPrice(slugs.productpage.simpleProductSlug);
+    await page.goto(slugs.checkoutSlug);
+
+    await page.getByLabel('Cart 1 Item').click();
+    // Find product by selecting the row where the product name is found
+    const productListing = page.locator('#checkout-cart-details').filter({ hasText: selectors.productPage.simpleProductTitle}).nth(1);
+    // Retrieve listed price
+    const priceInCart = await productListing.locator('.price-excluding-tax').first().innerText();
+    expect(productPricePDP).toBe(priceInCart);
+  });
+});
+
