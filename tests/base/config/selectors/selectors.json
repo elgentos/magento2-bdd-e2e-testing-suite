@@ -60,7 +60,8 @@
     "configurableProductSizeLabel": "Size",
     "configurableProductColorLabel": "Color",
     "configurableProductOptionForm": "#product_addtocart_form",
-    "configurableProductOptionValue": ".product-option-value-label"
+    "configurableProductOptionValue": ".product-option-value-label",
+    "quantityFieldLabel": "Quantity"
   },
   "cart": {
     "updateItemButtonLabel": "shopping-cart Update item",
@@ -88,7 +89,14 @@
     "editProductIconLabel": "Edit product",
     "productQuantityFieldLabel": "Quantity",
     "removeProductIconLabel": "Remove product",
-    "minicartPriceFieldClass": ".price-excluding-tax .minicart-price .price"
+    "minicartPriceFieldClass": ".price-excluding-tax .minicart-price .price",
+    "minicartAmountBubbleLocator": "#menu-cart-icon > span"
+  },
+  "checkout": {
+    "openCartButtonLabel": "Cart",
+    "openCartButtonLabelCont": "item",
+    "openCartButtonLabelContMultiple": "items",
+    "cartDetailsLocator": "#checkout-cart-details div"
   },
   "contactPage": {
     "messageFieldLabel": "What’s on your mind?"
