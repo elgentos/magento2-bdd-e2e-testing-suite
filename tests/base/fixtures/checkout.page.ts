@@ -131,18 +131,24 @@ export class CheckoutPage {
     await expect(checkoutDiscountField).toBeEditable();
   }
 
+  // ==============================================
+  // Address-related methods
+  // ==============================================
+
   async fillGuestAddress() {
     // Fill in guest information
-    await this.page.getByLabel('Email address', { exact: true }).fill(faker.internet.email());
+    await this.page.getByLabel(UIReference.personalInformation.emailFieldCheckout, { exact: true }).fill(faker.internet.email());
     await this.page.getByLabel(UIReference.personalInformation.firstNameLabel).fill(faker.person.firstName());
     await this.page.getByLabel(UIReference.personalInformation.lastNameLabel).fill(faker.person.lastName());
 
     // Fill in address information
     await this.page.getByLabel(UIReference.newAddress.streetAddressLabel).fill(`${faker.location.streetAddress()} Street`);
-    await this.page.getByLabel(UIReference.newAddress.zipCodeLabel).fill(faker.location.zipCode('#####'));
-    await this.page.getByLabel(UIReference.newAddress.cityNameLabel).fill(faker.location.city());
     await this.page.getByLabel(UIReference.newAddress.countryLabel).selectOption('US');
     await this.page.getByLabel(UIReference.newAddress.provinceSelectLabel).selectOption('Alabama');
+    await this.page.getByLabel(UIReference.newAddress.zipCodeLabel).fill(faker.location.zipCode('#####'));
+    await this.page.getByLabel(UIReference.newAddress.cityNameLabel).fill(faker.location.city());
+    //await this.waitForHyvaToasts();
+    //await this.waitForHyvaToasts();
     await this.page.getByLabel(UIReference.newAddress.phoneNumberLabel).fill(faker.phone.number('##########'));
   }
 }

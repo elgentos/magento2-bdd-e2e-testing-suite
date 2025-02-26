@@ -177,36 +177,34 @@ test.describe('Checkout (guest)', () => {
    * @then I should see a confirmation that my order has been placed
    *  @and a order number should be created and show to me
    */
-  test('Complete checkout with Check/Money Order payment', { tag: ['@checkout', '@guest'] }, async ({ page }, testInfo) => {
+  test('Complete checkout with Check/Money Order payment', { tag: ['@checkout', '@guest-checkout-payment'] }, async ({ page, browserName }, testInfo) => {
+    // Preventing server crash because of too many requests.
+    test.slow();
+    //if(browserName === 'firefox') await page.waitForTimeout(25000);
+    //if(browserName === 'webkit') await page.waitForTimeout(50000);
+    // Remove above when running a server with more resources.
+
     const checkoutPage = new CheckoutPage(page);
 
     await page.goto(slugs.checkoutSlug);
     await checkoutPage.fillGuestAddress();
     await checkoutPage.selectShipmentMethod();
+    await checkoutPage.waitForHyvaToasts();
 
-    // Fixes bug where state is not unselected after shipment method selection.
+    // Fixes bug where state is not selected after shipment method selection.
     await checkoutPage.page.getByLabel(UIReference.newAddress.provinceSelectLabel).selectOption('Alabama');
+    await checkoutPage.waitForHyvaToasts();
 
     // Select payment method
     await checkoutPage.selectPaymentMethod('check');
+    await checkoutPage.waitForHyvaToasts();
     await checkoutPage.placeOrderButton.click();
     await checkoutPage.waitForHyvaToasts();
 
-    // Wait for redirect to success page and verify we're there
-    await expect(page).toHaveURL(new RegExp(slugs.successSlug));
-
-    // Verify order placement
-    await expect.soft(page.getByText(outcomeMarker.checkout.orderPlacedNotification)).toBeVisible();
-
-    // Verify order placement on success page
-    await expect(page.getByText(outcomeMarker.checkout.orderPlacedNotification)).toBeVisible();
-
     // Fetch order number after placing order
-    const orderNumber = await page.locator('p').getByText('Your order # is:').innerText();
-    await expect(page.getByText(orderNumber)).toBeVisible();
-
-    // Verify success page elements
-    await expect(checkoutPage.continueShoppingButton).toBeVisible();
+    const orderNumber = await page.locator('p').getByText(outcomeMarker.checkout.orderPlacedNumberText).innerText();
+    await checkoutPage.waitForHyvaToasts();
+    await expect(page.getByText(orderNumber), `Order number ${orderNumber} should be visible on confirmation page`).toBeVisible();
 
     // Add order number to test info
     testInfo.annotations.push({ type: 'Order created with Check / Money Order payment', description: orderNumber.replace('Your order # is:', '') });

@@ -26,7 +26,8 @@
   "personalInformation": {
     "firstNameLabel": "First Name",
     "lastNameLabel": "Last Name",
-    "changePasswordCheckLabel": "Change Password"
+    "changePasswordCheckLabel": "Change Password",
+    "emailFieldCheckout": "Email Address"
   },
   "accountCreation": {
     "createAccountButtonLabel": "Create an Account"
