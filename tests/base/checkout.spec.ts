@@ -6,7 +6,7 @@ import { CheckoutPage } from './fixtures/checkout.page';
 
 import slugs from './config/slugs.json';
 import UIReference from './config/element-identifiers/element-identifiers.json';
-
+import outcomeMarker from './config/outcome-markers/outcome-markers.json';
 
 /**
  * @feature BeforeEach runs before each test in this group.
@@ -43,7 +43,7 @@ test.describe('Checkout (login required)', () => {
     await loginPage.login(emailInputValue, passwordInputValue);
     await page.goto(slugs.checkoutSlug);
   });
-  
+
   /**
    * @feature Automatically fill in certain data in checkout (if user is logged in)
    * @scenario When the user navigates to the checkout (with a product), their name and address should be filled in.
@@ -164,5 +164,71 @@ test.describe('Checkout (guest)', () => {
     const checkout = new CheckoutPage(page);
     await checkout.enterWrongCouponCode("incorrect discount code");
   });
+
+  /**
+   * @feature Place order for simple product
+   * @scenario User places an order for a simple product
+   * @given I have a product in my cart
+   *  @and I am on any page
+   * @when I navigate to the checkout
+   *  @and I fill in the required fields
+   *  @and I click the button to place my order
+   * @then I should see a confirmation that my order has been placed
+   *  @and a order number should be created and show to me
+   */
+  test('Complete checkout with Check/Money Order payment', {
+    tag: ['@checkout', '@guest'],
+  }, async ({ page }, testInfo) => {
+    test.slow();
+    const checkoutPage = new CheckoutPage(page);
+
+    await test.step('Navigate to checkout', async () => {
+      await page.goto(slugs.checkoutSlug);
+      await checkoutPage.waitForHyvaToasts();
+    });
+
+    await test.step('Fill guest address', async () => {
+      await checkoutPage.fillGuestAddress();
+      await checkoutPage.waitForHyvaToasts();
+    });
+
+    await test.step('Select state and shipping method', async () => {
+      await checkoutPage.selectShipmentMethod();
+      await checkoutPage.waitForHyvaToasts();
+    });
+
+    await test.step('Select payment method and place order', async () => {
+      await checkoutPage.selectPaymentMethod('check');
+      await checkoutPage.waitForHyvaToasts();
+
+      // Wait for state dropdown to be interactive and visible
+      await expect(page.getByLabel(UIReference.newAddress.provinceSelectLabel))
+        .toBeEnabled();
+
+      // Select state
+      await page.getByLabel(UIReference.newAddress.provinceSelectLabel)
+        .selectOption(UIReference.newAddress.defaultState);
+      await checkoutPage.waitForHyvaToasts();
+
+      // Ensure place order button is clickable
+      await expect(checkoutPage.placeOrderButton).toBeEnabled({ timeout: 10000 });
+      await checkoutPage.placeOrderButton.click();
+      await checkoutPage.waitForHyvaToasts();
+    });
+
+    await test.step('Verify order number', async () => {
+      // Verify order success message
+      await expect(page.getByText('Order process completed'), 'Order completion message should be visible').toBeVisible();
+      const orderNumberElement = page.locator('p').getByText('Your order # is:');
+      await expect(orderNumberElement, 'Order number should be visible on confirmation page').toBeVisible();
+
+      const orderNumber = await orderNumberElement.innerText();
+      testInfo.annotations.push({
+        type: 'Order created with Check / Money Order payment',
+        description: orderNumber.replace('Your order # is:', '').trim()
+      });
+    });
+  });
 });
+
 
