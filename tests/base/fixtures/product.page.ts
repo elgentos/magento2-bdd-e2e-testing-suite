@@ -1,7 +1,5 @@
 import {expect, type Locator, type Page} from '@playwright/test';
-
 import slugs from '../config/slugs.json';
-
 import UIReference from '../config/element-identifiers/element-identifiers.json';
 import outcomeMarker from '../config/outcome-markers/outcome-markers.json';
 
@@ -11,24 +9,35 @@ export class ProductPage {
   simpleProductAddToCartButon: Locator;
   addToCompareButton: Locator;
   addToWishlistButton: Locator;
+  relatedProductsSection: Locator;
+  relatedProductAddToCartButton: Locator;
+  relatedProductAddToWishlistButton: Locator;
+  relatedProductAddToCompareButton: Locator;
 
   constructor(page: Page) {
     this.page = page;
     this.simpleProductAddToCartButon = page.getByRole('button', { name: 'shopping-cart Add to Cart' });
     this.addToCompareButton = page.getByLabel('Add to Compare', { exact: true });
     this.addToWishlistButton = page.getByLabel('Add to Wish List', { exact: true });
+
+    // Add related products locators
+    this.relatedProductsSection = page.getByText('We found other products you might like! Navigating through the elements of the');
+    this.relatedProductAddToCartButton = this.relatedProductsSection.getByRole('button', { name: /Add to Cart/i });
+    // Update these locators to use partial matching instead of exact matching
+    this.relatedProductAddToWishlistButton = this.relatedProductsSection.getByLabel(/Add to Wish List/i, { exact: false });
+    this.relatedProductAddToCompareButton = this.relatedProductsSection.getByLabel(/Add to Compare/i, { exact: false });
   }
 
   // ==============================================
   // Productpage-related methods
   // ==============================================
-  
+
   async addProductToCompare(product:string, url: string){
     let productAddedNotification = `${outcomeMarker.productPage.simpleProductAddedNotification} product`;
     await this.page.goto(url);
-    await this.addToCompareButton.click(); 
+    await this.addToCompareButton.click();
     await expect(this.page.getByText(productAddedNotification)).toBeVisible();
-    
+
     await this.page.goto(slugs.productpage.productComparisonSlug);
 
     // Assertion: a cell with the product name inside a cell with the product name should be visible
@@ -100,7 +109,7 @@ export class ProductPage {
     this.simpleProductTitle = this.page.getByRole('heading', {name: product, exact:true});
     expect(await this.simpleProductTitle.innerText()).toEqual(product);
     await expect(this.simpleProductTitle.locator('span')).toBeVisible();
-    
+
     if(quantity){
       // set quantity
       await this.page.getByLabel(UIReference.productPage.quantityFieldLabel).fill('2');
@@ -120,5 +129,38 @@ export class ProductPage {
 
     await this.simpleProductAddToCartButon.click();
     await this.page.waitForLoadState();
+  }
+
+  async testRelatedProductButtons(url: string) {
+    await this.page.goto(url);
+
+    // Check if related products section exists
+    await expect(this.relatedProductsSection).toBeVisible();
+
+    // Test Add to Cart button - get the actual product name dynamically
+    // Find the first related product's name by looking at the link text
+    const firstRelatedProductLink = this.relatedProductsSection.locator('a.product-item-link').first();
+    const firstRelatedProductTitle = await firstRelatedProductLink.innerText();
+
+    await this.relatedProductAddToCartButton.first().click();
+    await expect(this.page.getByText(`${outcomeMarker.productPage.simpleProductAddedNotification} ${firstRelatedProductTitle}`)).toBeVisible();
+
+    // Test Add to Wishlist button (requires login)
+    await this.page.goto(url);
+    await this.relatedProductAddToWishlistButton.first().click();
+
+    // Use a more flexible approach to detect the wishlist confirmation
+    // Either wait for a notification containing the product name and "Wish List"
+    // or wait for the page to navigate to the wishlist page
+    await Promise.any([
+      expect(this.page.getByText(new RegExp(`${firstRelatedProductTitle}.*Wish List`, 'i'))).toBeVisible({ timeout: 10000 }),
+      expect(this.page).toHaveURL(new RegExp(slugs.wishListRegex), { timeout: 10000 })
+    ]);
+
+    // Test Add to Compare button
+    await this.page.goto(url);
+    await this.relatedProductAddToCompareButton.first().click();
+    // Wait for notification that product was added to comparison list
+    await expect(this.page.getByText(`You added product ${firstRelatedProductTitle} to the comparison list.`)).toBeVisible();
   }
 }

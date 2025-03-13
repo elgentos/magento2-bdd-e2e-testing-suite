@@ -19,11 +19,11 @@ test.describe('Product page tests',{ tag: '@product',}, () => {
       const browserEngine = browserName?.toUpperCase() || "UNKNOWN";
       let emailInputValue = process.env[`MAGENTO_EXISTING_ACCOUNT_EMAIL_${browserEngine}`];
       let passwordInputValue = process.env.MAGENTO_EXISTING_ACCOUNT_PASSWORD;
-    
+
       if(!emailInputValue || !passwordInputValue) {
         throw new Error("MAGENTO_EXISTING_ACCOUNT_EMAIL_${browserEngine} and/or MAGENTO_EXISTING_ACCOUNT_PASSWORD have not defined in the .env file, or the account hasn't been created yet.");
       }
-    
+
       const loginPage = new LoginPage(page);
       await loginPage.login(emailInputValue, passwordInputValue);
     });
@@ -44,7 +44,31 @@ test.describe('Product page tests',{ tag: '@product',}, () => {
     const productPage = new ProductPage(page);
     await productPage.openLightboxAndScrollThrough(slugs.productpage.configurableProductSlug);
   });
-  
+
+  test('Related products buttons functionality', async ({page, browserName}) => {
+    const productPage = new ProductPage(page);
+
+    await test.step('Test related product buttons as guest', async () => {
+      await productPage.testRelatedProductButtons(slugs.productpage.simpleProductSlug);
+    });
+
+    await test.step('Test related product buttons as logged in user', async () => {
+      // Log in with account
+      const browserEngine = browserName?.toUpperCase() || "UNKNOWN";
+      let emailInputValue = process.env[`MAGENTO_EXISTING_ACCOUNT_EMAIL_${browserEngine}`];
+      let passwordInputValue = process.env.MAGENTO_EXISTING_ACCOUNT_PASSWORD;
+
+      if(!emailInputValue || !passwordInputValue) {
+        throw new Error("MAGENTO_EXISTING_ACCOUNT_EMAIL_${browserEngine} and/or MAGENTO_EXISTING_ACCOUNT_PASSWORD have not defined in the .env file, or the account hasn't been created yet.");
+      }
+
+      const loginPage = new LoginPage(page);
+      await loginPage.login(emailInputValue, passwordInputValue);
+
+      // Test related product buttons again as logged in user
+      await productPage.testRelatedProductButtons(slugs.productpage.simpleProductSlug);
+    });
+  });
 });
 
 test.describe('Simple product tests',{ tag: '@simple-product',}, () => {

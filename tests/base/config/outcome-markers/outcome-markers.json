@@ -18,6 +18,7 @@
   } ,
   "productPage": {
     "simpleProductAddedNotification": "You added",
+    "comparisonListNotification": "You added product",
     "borderClassRegex": ".* border-primary$"
   },
   "cart": {
