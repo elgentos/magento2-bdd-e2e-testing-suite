@@ -1,33 +1,26 @@
-import { test as setup, expect } from '@playwright/test';
-import path from 'path';
+import { chromium, Browser, Page, expect } from '@playwright/test';
 import slugs from './base/config/slugs.json';
-import selectors from './base/config/selectors/selectors.json';
+import UIReference from './base/config/element-identifiers/element-identifiers.json';
 
-const authFile = path.join(__dirname, '../playwright/.auth/user.json');
+async function globalSetup(email: string, password: string){
+  const browser: Browser = await chromium.launch({headless: false});
+  const context = await browser.newContext();
+  const page: Page = await context.newPage();
 
-setup('authenticate', async ({ page, browserName }) => {
-  const browserEngine = browserName?.toUpperCase() || "UNKNOWN";
-  let emailInputValue = process.env[`MAGENTO_EXISTING_ACCOUNT_EMAIL_${browserEngine}`];
-  let passwordInputValue = process.env.MAGENTO_EXISTING_ACCOUNT_PASSWORD;
+  let loginEmailField = page.getByLabel(UIReference.credentials.emailFieldLabel, {exact: true});
+  let loginPasswordField = page.getByLabel(UIReference.credentials.passwordFieldLabel, {exact: true});
+  let loginButton = page.getByRole('button', { name: UIReference.credentials.loginButtonLabel });
 
-  if(!emailInputValue || !passwordInputValue) {
-    throw new Error("MAGENTO_EXISTING_ACCOUNT_EMAIL_${browserEngine} and/or MAGENTO_EXISTING_ACCOUNT_PASSWORD have not defined in the .env file, or the account hasn't been created yet.");
-  }
+  await page.goto('https://hyva-demo.elgentos.io/customer/account/login');
+  await loginEmailField.fill("user-AUTH@elgentos.nl");
+  await loginPasswordField.fill("Test1234!");
+  await loginButton.press("Enter");
 
-  // Perform authentication steps. Replace these actions with your own.
-  await page.goto(slugs.account.loginSlug);
-  await page.getByLabel(selectors.credentials.emailFieldLabel, {exact: true}).fill(emailInputValue);
-  await page.getByLabel(selectors.credentials.passwordFieldLabel, {exact: true}).fill(passwordInputValue);
-  await page.getByRole('button', { name: selectors.credentials.loginButtonLabel }).click();
-  // Wait until the page receives the cookies.
-  //
-  // Sometimes login flow sets cookies in the process of several redirects.
-  // Wait for the final URL to ensure that the cookies are actually set.
-  // await page.waitForURL('');
-  // Alternatively, you can wait until the page reaches a state where all cookies are set.
-  await expect(page.getByRole('link', { name: selectors.mainMenu.myAccountLogoutItem })).toBeVisible();
+  await expect(page.getByRole('link', { name: UIReference.mainMenu.myAccountLogoutItem })).toBeVisible();
 
-  // End of authentication steps.
+  // Save the logged in state of the webpage
+  await page.context().storageState({ path: './auth-storage/LoginAuth.json' });
+  await browser.close();
+}
 
-  await page.context().storageState({ path: authFile });
-});
+export default globalSetup;

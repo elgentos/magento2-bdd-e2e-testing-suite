@@ -28,6 +28,15 @@ test.describe('Cart functionalities (guest)', () => {
     await page.goto(slugs.cartSlug);
   });
 
+  /**************************************
+   * AFTEREACH() FOR DEBUGGING PURPOSES *
+   **************************************/
+
+  test.afterEach(async ({page}) => {
+    // Open up the account menu to confirm user is logged in
+    await page.getByLabel('My Account').click();
+  });
+
   /**
    * @feature Product can be added to cart
    * @scenario User adds a product to their cart
