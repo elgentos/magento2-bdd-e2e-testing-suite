@@ -9,6 +9,8 @@
     "addressBookArea": ".block-addresses-list",
     "addressDeleteIconButton": "trash",
     "editAddressIconButton": "pencil-alt",
+    "addressBookArea": ".block-addresses-list",
+    "accountInformationFieldLocator": ".column > div > div > .flex",
     "links": {
       "newsletterLink": "Newsletter Subscriptions"
     }
