@@ -156,6 +156,7 @@
     "homePageTitleText": "Hyvä Themes"
   },
   "magentoAdminPage": {
+    "adminCouponCodeFieldLocator": "#promo_quote_grid_filter_coupon_code",
     "loginButtonLabel": "Sign In",
     "navigation": {
       "marketingButtonLabel": "Marketing",
