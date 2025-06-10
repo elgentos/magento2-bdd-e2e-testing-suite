@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { ProductPage } from './fixtures/product.page';
 import { MainMenuPage } from './fixtures/mainmenu.page';
-import {LoginPage} from './fixtures/login.page';
+import { LoginPage } from './fixtures/login.page';
 import { CartPage } from './fixtures/cart.page';
+import { NotificationValidator } from "./utils/notification.validator";
 
 import slugs from './config/slugs.json';
 import UIReference from './config/element-identifiers/element-identifiers.json';
@@ -20,9 +21,14 @@ test.describe('Cart functionalities (guest)', () => {
    *  @then the minicart should become visible
    *  @and I should see the product in the minicart
    */
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page }, testInfo) => {
     const productPage = new ProductPage(page);
     await productPage.addSimpleProductToCart(UIReference.productPage.simpleProductTitle, slugs.productpage.simpleProductSlug);
+
+    const productAddedNotification = `${outcomeMarker.productPage.simpleProductAddedNotification} ${UIReference.productPage.simpleProductTitle}`;
+    const notificationValidator = new NotificationValidator(page, testInfo);
+    await notificationValidator.validate(productAddedNotification);
+
     // await mainMenu.openMiniCart();
     // await expect(page.getByText(outcomeMarker.miniCart.simpleProductInCartTitle)).toBeVisible();
     await page.goto(slugs.cart.cartSlug);
