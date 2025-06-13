@@ -2,8 +2,9 @@ import {test as base, expect} from '@playwright/test';
 import {LoginPage} from './fixtures/login.page';
 import {MainMenuPage} from './fixtures/mainmenu.page';
 import inputvalues from './config/input-values/input-values.json';
+import outcomeMarker from './config/outcome-markers/outcome-markers.json';
 
-base('User can log in with valid credentials', async ({page, browserName}) => {
+base('User can log in with valid credentials', {tag: '@hot'}, async ({page, browserName}) => {
   const browserEngine = browserName?.toUpperCase() || "UNKNOWN";
   let emailInputValue = process.env[`MAGENTO_EXISTING_ACCOUNT_EMAIL_${browserEngine}`];
 
@@ -34,4 +35,14 @@ base('User can log in with valid credentials', async ({page, browserName}) => {
 
   expect(parsedData.customer.firstname, 'Customer firstname should match').toBe(inputvalues.accountCreation.firstNameValue);
   expect(parsedData.customer.fullname, 'Customer lastname should match').toContain(inputvalues.accountCreation.lastNameValue);
+});
+
+base('User cannot log in with invalid credentials', async ({page}) => {
+  const loginPage = new LoginPage(page);
+  await loginPage.loginExpectError('invalid@example.com', 'wrongpassword', outcomeMarker.login.invalidCredentialsMessage);
+});
+
+base('Login fails with missing password', async ({page}) => {
+  const loginPage = new LoginPage(page);
+  await loginPage.loginExpectError('invalid@example.com', '', false);
 });
